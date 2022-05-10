@@ -9,6 +9,11 @@ import com.muks.es650.stats.UsageMetrices;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Protocol;
 
+import org.joda.time.DateTime;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -41,6 +46,11 @@ public class RedisIngestionTests {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   }
 
+
+  private static DateTime getTimeNow() {
+    return DateTime.parse(Instant.now().toString());
+  }
+
   public static void main(String[] args) {
     String cloudStatsKey1 = Joiner.on(":").join(offlineDlpPrefix, dlpEventStats, cloudServiceStatsCacheKey);
     String cloudStatsKey2 = Joiner.on(":").join(offlineDlpPrefix, dlpEventStats, cloudServiceStatsCacheKey);
@@ -55,6 +65,7 @@ public class RedisIngestionTests {
 
     try {
       UsageMetrices stats1 = UsageMetrices.builder()
+          .setTimestamp(getTimeNow())
           .setTenantId(tenantId)
           .setTenantInstanceId(instanceId2)
           .setCsp(cspId)
@@ -63,6 +74,7 @@ public class RedisIngestionTests {
           .build();
 
       UsageMetrices stats2 = UsageMetrices.builder()
+          .setTimestamp(getTimeNow())
           .setTenantId(tenantId2)
           .setTenantInstanceId(instanceId3)
           .setCsp(cspId)
@@ -71,6 +83,7 @@ public class RedisIngestionTests {
           .build();
 
       UsageMetrices stats3 = UsageMetrices.builder()
+          .setTimestamp(getTimeNow())
           .setTenantId(1234)
           .setTenantInstanceId(3678)
           .setCsp(28610)
@@ -257,7 +270,7 @@ public class RedisIngestionTests {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     String statsAsString = objectMapper.writeValueAsString(data);
-    JedisClient.hset(key, data.getTimestamp(), statsAsString);  // ingest into redis in json string format
+    JedisClient.hset(key, String.valueOf(data.getTimestamp()), statsAsString);  // ingest into redis in json string format
 
     // fetch values and typecast back to the ojbect
     Map<String, String> allItemsFromKey = JedisClient.hgetAll(key);
