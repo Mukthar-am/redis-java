@@ -9,11 +9,7 @@ import com.muks.es650.stats.UsageMetrices;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Protocol;
 
-import org.joda.time.DateTime;
-
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -47,8 +43,8 @@ public class RedisIngestionTests {
   }
 
 
-  private static DateTime getTimeNow() {
-    return DateTime.parse(Instant.now().toString());
+  private static String getTimeNow() {
+    return Instant.now().toString();
   }
 
   public static void main(String[] args) {
@@ -62,6 +58,7 @@ public class RedisIngestionTests {
         tenantId2, cspId, instanceId3);
 
     String cloudStatsKeyPattern = Joiner.on("").join(cloudStatsKey1, "*");
+    System.out.println(Instant.now());
 
     try {
       UsageMetrices stats1 = UsageMetrices.builder()
@@ -91,9 +88,9 @@ public class RedisIngestionTests {
           .setCount(9)
           .build();
 
-//      System.out.println("stats1: " + objectMapper.writeValueAsString(stats1));
-//      System.out.println("stats2: " + objectMapper.writeValueAsString(stats2));
-//      System.out.println("\n");
+      System.out.println("stats1: " + objectMapper.writeValueAsString(stats1));
+      System.out.println("stats2: " + objectMapper.writeValueAsString(stats2));
+      System.out.println("\n");
 
       //Connecting to Redis server on localhost
       redisConnect();
@@ -105,6 +102,18 @@ public class RedisIngestionTests {
       List<String> statsKeysToRead = getUsageStatsCacheKeys(cloudStatsKeyPattern);
       System.out.println("Reading total of " + statsKeysToRead.size() + " Redis keys - " + statsKeysToRead);
 
+
+      statsKeysToRead.forEach(key -> {
+        System.out.println("key: " + key);
+        String[] splits = key.split(":");
+
+        int length = splits.length;
+        System.out.printf("Len: " + length);
+        String tenantInstanceKey = Joiner.on(":").join(splits[length-3], splits[length-2], splits[length-1]);
+        System.out.println(tenantInstanceKey);
+
+        //TenantInstanceKey tenantInstanceKey = TenantInstanceKey.create(tenantId, cspId, instanceId);
+      });
 
       System.exit(0);
 
