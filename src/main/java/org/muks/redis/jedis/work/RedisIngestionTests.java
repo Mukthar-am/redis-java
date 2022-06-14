@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -25,10 +26,10 @@ public class RedisIngestionTests {
 
   static String offlineDlpPrefix = "offlinedlp";
   static String dlpEventStats = "dlp";
-  static int tenantId = 7730;
+  static int tenantId = 2222;
   static int tenantId2 = 4300;
   static int cspId = 25680;
-  static int instanceId = 5145;
+  static int instanceId = 1212;
   static int instanceId2 = 7210;
   static int instanceId3 = 2212;
   static String cloudServiceStatsCacheKey = "cloud_service_stats";
@@ -48,6 +49,12 @@ public class RedisIngestionTests {
   }
 
   public static void main(String[] args) {
+    List<String> myList = new ArrayList<>();
+    myList.add("muks");
+    //myList.add("muk2");
+    int size = myList.size();
+    System.out.println("size: " + size + ", == " + myList.get(size-1));
+
     String cloudStatsKey1 = Joiner.on(":").join(offlineDlpPrefix, dlpEventStats, cloudServiceStatsCacheKey);
     String cloudStatsKey2 = Joiner.on(":").join(offlineDlpPrefix, dlpEventStats, cloudServiceStatsCacheKey);
 
@@ -64,8 +71,8 @@ public class RedisIngestionTests {
       UsageMetrices stats1 = UsageMetrices.builder()
           .setTimestamp(getTimeNow())
           .setTenantId(tenantId)
-          .setTenantInstanceId(instanceId2)
-          .setCsp(cspId)
+          .setInstanceId(instanceId)
+          .setCspId(cspId)
           .setApi(1)
           .setCount(5)
           .build();
@@ -73,8 +80,8 @@ public class RedisIngestionTests {
       UsageMetrices stats2 = UsageMetrices.builder()
           .setTimestamp(getTimeNow())
           .setTenantId(tenantId2)
-          .setTenantInstanceId(instanceId3)
-          .setCsp(cspId)
+          .setInstanceId(instanceId3)
+          .setCspId(cspId)
           .setApi(2)
           .setCount(59)
           .build();
@@ -82,8 +89,8 @@ public class RedisIngestionTests {
       UsageMetrices stats3 = UsageMetrices.builder()
           .setTimestamp(getTimeNow())
           .setTenantId(1234)
-          .setTenantInstanceId(3678)
-          .setCsp(28610)
+          .setInstanceId(3678)
+          .setCspId(28610)
           .setApi(3)
           .setCount(9)
           .build();
@@ -96,8 +103,8 @@ public class RedisIngestionTests {
       redisConnect();
 
       writeToSet(cloudStatsKey3, stats1);
-      writeToSet(cloudStatsKey4, stats2);
-      writeToSet(cloudStatsKey3, stats3);
+//      writeToSet(cloudStatsKey4, stats2);
+//      writeToSet(cloudStatsKey3, stats3);
 
       List<String> statsKeysToRead = getUsageStatsCacheKeys(cloudStatsKeyPattern);
       System.out.println("Reading total of " + statsKeysToRead.size() + " Redis keys - " + statsKeysToRead);
@@ -170,7 +177,18 @@ public class RedisIngestionTests {
     List<String> availableKeys = new ArrayList<>();
     Set<String> statsCacheKeys = JedisClient.keys(redisKeyPattern);
 
-    statsCacheKeys.forEach(statsKey -> availableKeys.add(statsKey));
+    statsCacheKeys.forEach(statsKey -> {
+      String[] redisStatsKeySplits = statsKey.split(":");
+      int statsKeySplitLength = redisStatsKeySplits.length - 1;
+
+      System.out.println("len: " + statsKeySplitLength);
+      String instanceId = redisStatsKeySplits[statsKeySplitLength];
+      String cspId = redisStatsKeySplits[statsKeySplitLength-1];
+      String tenantId = redisStatsKeySplits[statsKeySplitLength-2];
+      System.out.println("Instance: " + redisStatsKeySplits[statsKeySplitLength]);
+
+      availableKeys.add(statsKey);
+    });
     return availableKeys;
   }
 
