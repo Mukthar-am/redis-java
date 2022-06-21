@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.muks.es650.stats.UsageMetrices;
+import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Protocol;
 
@@ -14,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -22,11 +22,13 @@ import java.util.Set;
  */
 
 
-public class RedisIngestionTests {
+public class LocalRedisIngestionTests {
+  private static String host = "127.0.0.1";
+  private static int port = 6379;
 
   static String offlineDlpPrefix = "offlinedlp";
   static String dlpEventStats = "dlp";
-  static int tenantId = 2222;
+  static int tenantId = 2229;
   static int tenantId2 = 4300;
   static int cspId = 25680;
   static int instanceId = 1212;
@@ -100,7 +102,8 @@ public class RedisIngestionTests {
       System.out.println("\n");
 
       //Connecting to Redis server on localhost
-      redisConnect();
+      //redisConnect();
+      redisLocalCacheConnect();
 
       writeToSet(cloudStatsKey3, stats1);
 //      writeToSet(cloudStatsKey4, stats2);
@@ -361,6 +364,17 @@ public class RedisIngestionTests {
     } else {
       System.out.println("problem in connection to redis");
     }
+  }
 
+  private static void redisLocalCacheConnect() {
+    boolean useSsl = false;
+    // Connect to the Azure Cache for Redis over the TLS/SSL port using the key.
+    JedisClient = new Jedis(host, port, DefaultJedisClientConfig.builder()
+        .ssl(useSsl)
+        .build());
+
+    // Simple PING command
+    System.out.println( "\nCache Command  : Ping" );
+    System.out.println( "Cache Response : " + JedisClient.ping());
   }
 }
