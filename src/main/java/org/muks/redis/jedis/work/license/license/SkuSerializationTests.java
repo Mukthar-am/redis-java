@@ -4,8 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONException;
-import org.json.JSONObject;
-import org.muks.redis.jedis.work.license.dao.Sku;
+import org.muks.redis.jedis.work.license.dao.MicrosoftTeamsSubscribedSkus;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,14 +14,19 @@ public class SkuSerializationTests {
 
   public static void main(String[] args) throws IOException {
     String input = "/Users/mmaniyar/Downloads/sku.json";
+    String subscribedSkuValueFile = "/Users/mmaniyar/Downloads/subscribedSkuValueFile.json";
 
     String jsonString = parseJSONFile(input);
+    String skusFile = parseJSONFile(subscribedSkuValueFile);
 
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);  // UnrecognizedPropertyException
 
-    Sku readValue = objectMapper.readValue(jsonString, Sku.class);
-    System.out.println("readValue = " + readValue);
+//    Sku readValue = objectMapper.readValue(jsonString, Sku.class);
+//    System.out.println(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(readValue));
+
+    MicrosoftTeamsSubscribedSkus skus = objectMapper.readValue(skusFile, MicrosoftTeamsSubscribedSkus.class);
+    System.out.println(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(skus));
 
 
   }
