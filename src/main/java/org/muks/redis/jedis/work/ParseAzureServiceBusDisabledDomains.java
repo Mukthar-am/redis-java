@@ -6,7 +6,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -22,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class ParseDisabledDomains {
+public class ParseAzureServiceBusDisabledDomains {
 
   private String azureManagementUrl = "https://management.azure.com/subscriptions/efa883c5-adb1-45bd-bb33-6c3b2ae8435c/resourceGroups/prod-northcentral/providers/Microsoft.ServiceBus/namespaces/shn-sharepoint-dlp-events-prod-new/queues?api-version=2017-04-01&$skip=0&$top=100&_=1655557124700";
   private String authToken = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6ImpTMVhvMU9XRGpfNTJ2YndHTmd2UU8yVnpNYyIsImtpZCI6ImpTMVhvMU9XRGpfNTJ2YndHTmd2UU8yVnpNYyJ9.eyJhdWQiOiJodHRwczovL21hbmFnZW1lbnQuY29yZS53aW5kb3dzLm5ldC8iLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC81MTZlYmNiNS1mNGM0LTQzZTktYjJkZi0zNzNiMGMxM2EwZjMvIiwiaWF0IjoxNjU1NzIzOTkzLCJuYmYiOjE2NTU3MjM5OTMsImV4cCI6MTY1NTcyNzkyMiwiYWNyIjoiMSIsImFpbyI6IkFVUUF1LzhUQUFBQXJTQ3FlMFZHUFRoS08zV25tNnlvdkNqSUkyV285emxuTndqaU91WjNSRHE2SEFFd0VRWjJ4Q3NaSDRPenF6STFRRDlKSlhVZk8vZkcrbHU5ZkFjdnRBPT0iLCJhbHRzZWNpZCI6IjE6bGl2ZS5jb206MDAwM0JGRkRCQzBBNUIwMSIsImFtciI6WyJwd2QiXSwiYXBwaWQiOiJjNDRiNDA4My0zYmIwLTQ5YzEtYjQ3ZC05NzRlNTNjYmRmM2MiLCJhcHBpZGFjciI6IjIiLCJlbWFpbCI6InNobnN3QHNreWhpZ2huZXR3b3Jrcy5jb20iLCJmYW1pbHlfbmFtZSI6IkhpZ2giLCJnaXZlbl9uYW1lIjoiU2t5IiwiZ3JvdXBzIjpbImVmNjIzZDBjLTM4M2EtNGU5NS1iMzYzLThjMDgxYTJmNzBkOCJdLCJpZHAiOiJsaXZlLmNvbSIsImlwYWRkciI6IjEwMy4xNi42OS43NiIsIm5hbWUiOiJTa3kgSGlnaCIsIm9pZCI6IjE3NTBkZGUyLTUwNjMtNGE5OC1iZTAyLWZlZGI0Y2YyZTJhZCIsInB1aWQiOiIxMDAzN0ZGRUEyNEVGRjA4IiwicmgiOiIwLkFYQUF0Ynh1VWNUMDZVT3kzemM3REJPZzgwWklmM2tBdXRkUHVrUGF3ZmoyTUJOd0FOby4iLCJzY3AiOiJ1c2VyX2ltcGVyc29uYXRpb24iLCJzdWIiOiIyTk9SMVZfaEhjNGlwdXJYeDlxMGRxb0h1VmVsMzQxVmtwcWo3bEw4aEFZIiwidGlkIjoiNTE2ZWJjYjUtZjRjNC00M2U5LWIyZGYtMzczYjBjMTNhMGYzIiwidW5pcXVlX25hbWUiOiJsaXZlLmNvbSNzaG5zd0Bza3loaWdobmV0d29ya3MuY29tIiwidXRpIjoieHpzMFo3cnBjVTJwVm00Wm5NVTNBUSIsInZlciI6IjEuMCIsIndpZHMiOlsiNjJlOTAzOTQtNjlmNS00MjM3LTkxOTAtMDEyMTc3MTQ1ZTEwIl0sInhtc190Y2R0IjoxNDk3NDQwODgwfQ.LJrUeohtAW7OXmBXqS5UYK06rMcfwcxL-aHv0uzmi0gRoM0r22v6U51KZbP-OLgrnx24w0quEuEqmKYfwoqDwKZ3WZQa40zgGTbmBsUtRtj-p4r9FF4Q1a_zVaexMlweom7SyH1z6x_yheVhx-4ixCVgniJb7Z20nW1AvmuDW6TJXxYXhBX67clIKubEQbb8MkwarI2Ri_JqtEgIsv840OSaePVzuwpZPS0mT6u2dzjiskUq0uR6s4dMIFAnBiL6B0dSMCsckYcAfTH8H63b_mqT2GLJKaICaajRQeVfJiYEmaowHVDf-aNxKROhcqBKoK9RtNfuCX0hmUdt8dKUbA";
@@ -35,11 +34,11 @@ public class ParseDisabledDomains {
   }
 
   public static void main(String[] args) throws IOException {
-    ParseDisabledDomains parseDisabledDomains = new ParseDisabledDomains();
+    ParseAzureServiceBusDisabledDomains parseAzureServiceBusDisabledDomains = new ParseAzureServiceBusDisabledDomains();
     //parseDisabledDomains.sendGet(parseDisabledDomains.azureManagementUrl);
 
     Map<String, List<String>> domainsMap = new HashMap<>();
-    parseDisabledDomains.getAzureServiceBusQueues(parseDisabledDomains.azureManagementUrl, domainsMap);
+    parseAzureServiceBusDisabledDomains.getAzureServiceBusQueues(parseAzureServiceBusDisabledDomains.azureManagementUrl, domainsMap);
 
     System.out.println("total queues from Azure ServiceBus: " + domainsMap.get("domains").size() + ", \nQueues: " + domainsMap.get("domains"));
     Path output = Paths.get("/Users/mmaniyar/Downloads/azureServiceBusQueues.txt");
@@ -64,7 +63,7 @@ public class ParseDisabledDomains {
     }
 
 
-    parseDisabledDomains.findList(azureRedisDomains, azureServiceBusQueues);
+    parseAzureServiceBusDisabledDomains.findList(azureRedisDomains, azureServiceBusQueues);
   }
 
 

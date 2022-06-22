@@ -5,7 +5,7 @@
 
   <groupId>org.muks.redis</groupId>
   <artifactId>redis-java</artifactId>
-  <packaging>jar</packaging>
+<!--  <packaging>jar</packaging>-->
   <version>1.0-SNAPSHOT</version>
   <name>redis-java</name>
 
@@ -14,6 +14,7 @@
   <properties>
     <maven.compiler.target>1.8</maven.compiler.target>
     <maven.compiler.source>1.8</maven.compiler.source>
+    <auto-value.version>1.5.1</auto-value.version>
   </properties>
 
   <dependencies>
@@ -51,12 +52,11 @@
     </dependency>
 
 
-
-<!--    <dependency>-->
-<!--      <groupId>redis.clients</groupId>-->
-<!--      <artifactId>jedis</artifactId>-->
-<!--&lt;!&ndash;      <version>2.8.1</version>&ndash;&gt;-->
-<!--    </dependency>-->
+    <!--    <dependency>-->
+    <!--      <groupId>redis.clients</groupId>-->
+    <!--      <artifactId>jedis</artifactId>-->
+    <!--&lt;!&ndash;      <version>2.8.1</version>&ndash;&gt;-->
+    <!--    </dependency>-->
     <dependency>
       <groupId>redis.clients</groupId>
       <artifactId>jedis</artifactId>
@@ -71,7 +71,6 @@
       <version>2.5.1</version>
       <scope>compile</scope>
     </dependency>
-
 
 
     <dependency>
@@ -101,18 +100,70 @@
     </dependency>
 
 
+    <!--    <dependency>-->
+    <!--      <groupId>com.google.auto.value</groupId>-->
+    <!--      <artifactId>auto-value-annotations</artifactId>-->
+    <!--      <version>${auto-value.version}</version>-->
+    <!--      <optional>true</optional>-->
+    <!--    </dependency>-->
+    <dependency>
+      <groupId>com.google.auto.value</groupId>
+      <artifactId>auto-value</artifactId>
+      <version>${auto-value.version}</version>
+      <optional>true</optional>
+    </dependency>
+
+
   </dependencies>
 
   <build>
     <pluginManagement>
       <plugins>
-        <plugin>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <configuration>
-            <source>${maven.compiler.source}</source>
-            <target>${maven.compiler.target}</target>
-          </configuration>
-        </plugin>
+        <!--        <plugin>-->
+        <!--          <artifactId>maven-compiler-plugin</artifactId>-->
+        <!--          <configuration>-->
+        <!--            <source>${maven.compiler.source}</source>-->
+        <!--            <target>${maven.compiler.target}</target>-->
+        <!--          </configuration>-->
+        <!--        </plugin>-->
+
+
+                <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-compiler-plugin</artifactId>
+                  <version>3.6.1</version>
+                  <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <annotationProcessorPaths>
+                      <annotationProcessorPath>
+                        <groupId>com.google.auto.value</groupId>
+                        <artifactId>auto-value</artifactId>
+                        <version>${auto-value.version}</version>
+                      </annotationProcessorPath>
+                    </annotationProcessorPaths>
+                  </configuration>
+                </plugin>
+
+
+<!--        <plugin>-->
+<!--          <groupId>org.apache.maven.plugins</groupId>-->
+<!--          <artifactId>maven-compiler-plugin</artifactId>-->
+<!--          <configuration>-->
+<!--            &lt;!&ndash;-->
+<!--              For Eclipse to understand annotation-driven source generators, "m2e-apt" must be installed-->
+<!--              (and also enabled under Maven > Annotation Processors)-->
+<!--             &ndash;&gt;-->
+<!--            <annotationProcessorPaths>-->
+<!--              <path>-->
+<!--                <groupId>com.google.auto.value</groupId>-->
+<!--                <artifactId>auto-value</artifactId>-->
+<!--                <version>1.6</version>-->
+<!--              </path>-->
+<!--            </annotationProcessorPaths>-->
+<!--          </configuration>-->
+<!--        </plugin>-->
+
       </plugins>
     </pluginManagement>
   </build>

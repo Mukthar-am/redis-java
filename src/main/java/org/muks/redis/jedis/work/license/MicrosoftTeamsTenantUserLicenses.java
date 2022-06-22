@@ -1,8 +1,9 @@
-package org.muks.redis.jedis.work;
+package org.muks.redis.jedis.work.license;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.muks.redis.jedis.work.license.license.TenantCspUserLicenseIngestion;
 
 
 import java.io.IOException;
@@ -13,13 +14,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MicrosoftTeamsTenantSubscribedSkus {
+public class MicrosoftTeamsTenantUserLicenses {
 
   private int totalTeamsSkuUserLicenses = 0;
   private JSONObject subscribedSkuJsonString = null;
 
 
-  public MicrosoftTeamsTenantSubscribedSkus(JSONObject subscribedSkuJsonString) {
+  public MicrosoftTeamsTenantUserLicenses(JSONObject subscribedSkuJsonString) {
     this.subscribedSkuJsonString = subscribedSkuJsonString;
   }
 
@@ -31,9 +32,18 @@ public class MicrosoftTeamsTenantSubscribedSkus {
     // get skuJson
     JSONObject skuJson = parseJSONFile(skuFile);
 
-    MicrosoftTeamsTenantSubscribedSkus microsoftTeamsTenantSubscribedSkus = new MicrosoftTeamsTenantSubscribedSkus(skuJson);
-    int userLicenses = microsoftTeamsTenantSubscribedSkus.getUserLicenseCount();
+    MicrosoftTeamsTenantUserLicenses microsoftTeamsTenantUserLicenses = new MicrosoftTeamsTenantUserLicenses(skuJson);
+    int userLicenses = microsoftTeamsTenantUserLicenses.getUserLicenseCount();
     System.out.println("Microsoft Teams, Tenant User Licenses: " + userLicenses);
+
+
+
+    TenantCspUserLicenseIngestion tenantCspUserLicenseIngestion = new TenantCspUserLicenseIngestion();
+    String key = tenantCspUserLicenseIngestion.makeTenantCspUserLicenseKey();
+    System.out.println("key: " + key);
+
+    tenantCspUserLicenseIngestion.persistUserLicensesData(key, userLicenses);
+
   }
 
 
@@ -59,7 +69,7 @@ public class MicrosoftTeamsTenantSubscribedSkus {
     return this.totalTeamsSkuUserLicenses;
   }
 
-  public int getTeamsSkuUserLicenses(JSONObject subscribedSku) {
+  private int getTeamsSkuUserLicenses(JSONObject subscribedSku) {
     System.out.println("\nsubscribedSkus: " + subscribedSku);
 
     if (isOfTeamsCapabilityStatusSku(subscribedSku) && isOfTeamsServicePlanSku(subscribedSku)) {
@@ -70,12 +80,13 @@ public class MicrosoftTeamsTenantSubscribedSkus {
   }
 
 
-  boolean isOfTeamsServicePlanSku(JSONObject subscribedSkus) {
+  private boolean isOfTeamsServicePlanSku(JSONObject subscribedSkus) {
     List<String> servicePlanIds = getServicePlanIds(subscribedSkus);
     System.out.println("servicePlanIds : " + servicePlanIds);
 
-    List<String> validTeamsServicePlans = Arrays.asList("6dc145d6-95dd-4191-b9c3-185575ee6f6b",
-        "57ff2da0-773e-42df-b2af-ffb7a2317929");
+    // ToDo configurable
+    List<String> validTeamsServicePlans =
+        Arrays.asList("6dc145d6-95dd-4191-b9c3-185575ee6f6b", "57ff2da0-773e-42df-b2af-ffb7a2317929");
 
     List<String> validServicePlan = servicePlanIds.stream()
         .filter(planId -> validTeamsServicePlans.contains(planId))
@@ -84,7 +95,7 @@ public class MicrosoftTeamsTenantSubscribedSkus {
     return (validServicePlan.size() > 0);
   }
 
-  public List<String> getServicePlanIds(JSONObject subscribedSkus) {
+  private List<String> getServicePlanIds(JSONObject subscribedSkus) {
     List<String> servicePlanIds = new ArrayList<>();
 
     JSONArray skuServicePlans = getSkuServicePlans(subscribedSkus);
@@ -108,11 +119,11 @@ public class MicrosoftTeamsTenantSubscribedSkus {
     return servicePlans;
   }
 
-  public String getServicePlanId(JSONObject servicePlan) {
+  private String getServicePlanId(JSONObject servicePlan) {
     return servicePlan.get("servicePlanId").toString();
   }
 
-  public boolean isOfTeamsCapabilityStatusSku(JSONObject subscribedSkus) {
+  private boolean isOfTeamsCapabilityStatusSku(JSONObject subscribedSkus) {
     String capabilityStatusJsonKey = "capabilityStatus";
     boolean isTeamsEnabledCapabilityLicense = false;
 
@@ -129,7 +140,7 @@ public class MicrosoftTeamsTenantSubscribedSkus {
     return isTeamsEnabledCapabilityLicense;
   }
 
-  int getSkuPrepaidUnits(JSONObject subscribedSku) {
+  private int getSkuPrepaidUnits(JSONObject subscribedSku) {
     String prepaidUnitsJsonKey = "prepaidUnits";
     return subscribedSku.getJSONObject(prepaidUnitsJsonKey).getInt("enabled");
 
