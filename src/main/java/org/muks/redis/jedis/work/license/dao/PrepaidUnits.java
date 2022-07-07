@@ -16,30 +16,27 @@ public abstract class PrepaidUnits {
     return new AutoValue_PrepaidUnits.Builder();
   }
 
-  @Nullable
   @JsonProperty("enabled")
-  public abstract String getEnabled();
+  public abstract int getEnabled();
 
-  @Nullable
   @JsonProperty("suspended")
-  public abstract String getSuspended();
+  public abstract int getSuspended();
 
-  @Nullable
   @JsonProperty("warning")
-  public abstract String getWarning();
+  public abstract int getWarning();
 
 
   @AutoValue.Builder
   public interface Builder {
 
     @JsonProperty("enabled")
-    Builder setEnabled(String enabled);
+    Builder setEnabled(int enabled);
 
     @JsonProperty("suspended")
-    Builder setSuspended(String suspended);
+    Builder setSuspended(int suspended);
 
     @JsonProperty("warning")
-    Builder setWarning(String warning);
+    Builder setWarning(int warning);
 
     PrepaidUnits autoBuild();
 

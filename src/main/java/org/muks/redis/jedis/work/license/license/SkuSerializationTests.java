@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONException;
+import org.muks.redis.jedis.work.license.dao.MicrosoftTeamsSubscribedSkuParser;
 import org.muks.redis.jedis.work.license.dao.MicrosoftTeamsSubscribedSkus;
 
 import java.io.IOException;
@@ -19,16 +20,16 @@ public class SkuSerializationTests {
     String jsonString = parseJSONFile(input);
     String skusFile = parseJSONFile(subscribedSkuValueFile);
 
+
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);  // UnrecognizedPropertyException
 
-//    Sku readValue = objectMapper.readValue(jsonString, Sku.class);
-//    System.out.println(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(readValue));
 
-    MicrosoftTeamsSubscribedSkus skus = objectMapper.readValue(skusFile, MicrosoftTeamsSubscribedSkus.class);
-    System.out.println(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(skus));
+    MicrosoftTeamsSubscribedSkus subscribedSkus = objectMapper.readValue(skusFile, MicrosoftTeamsSubscribedSkus.class);
 
-
+    MicrosoftTeamsSubscribedSkuParser microsoftTeamsSubscribedSkuParser = new MicrosoftTeamsSubscribedSkuParser(subscribedSkus);
+    int totalTeamsUserLicenses = microsoftTeamsSubscribedSkuParser.getUserLicenseCount();
+    System.out.println("totalTeamsUserLicenses: " + totalTeamsUserLicenses);
   }
 
 

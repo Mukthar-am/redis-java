@@ -22,28 +22,24 @@ import java.util.Set;
  */
 
 
-public class LocalRedisIngestionTests {
+public class LocalRedisAggregationTests {
+
   private static String host = "127.0.0.1";
   private static int port = 6379;
 
   static String offlineDlpPrefix = "offlinedlp";
   static String dlpEventStats = "dlp";
-  static int tenantId = 10402;
-  static int tenantId2 = 2300;
-  static int tenantId3 = 3300;
-  static int tenantId4 = 4300;
-  static int tenantId5 = 5300;
-  static int tenantId6 = 6300;
-  static int tenantId7 = 6300;
-  static int cspId = 25680;
-  static int instanceId = 28119;
-  static int instanceId2 = 7210;
-  static int instanceId3 = 2212;
   static String cloudServiceStatsCacheKey = "cloud_service_stats";
+  static int cspId = 25680;
+  static int tenantId = 10402;
+  static int instanceId = 28119;
+  static int api = 1;
+
+  static int tenantId2 = 20402;
+  static int instanceId2 = 38119;
 
   private static Jedis JedisClient = null;
   protected static final ObjectMapper objectMapper;
-
 
   static {
     objectMapper = new ObjectMapper();
@@ -56,144 +52,176 @@ public class LocalRedisIngestionTests {
   }
 
   public static void main(String[] args) {
-    List<String> myList = new ArrayList<>();
-    myList.add("muks");
-    //myList.add("muk2");
-    int size = myList.size();
-    System.out.println("size: " + size + ", == " + myList.get(size-1));
-
-    String cloudStatsKey1 = Joiner.on(":").join(offlineDlpPrefix, dlpEventStats, cloudServiceStatsCacheKey);
-    String cloudStatsKey2 = Joiner.on(":").join(offlineDlpPrefix, dlpEventStats, cloudServiceStatsCacheKey,
-        tenantId2, cspId, instanceId2);
-
-    String cloudStatsKey3 = Joiner.on(":").join(offlineDlpPrefix, dlpEventStats, cloudServiceStatsCacheKey,
-        tenantId, cspId, instanceId2);
-
-    String cloudStatsKey4 = Joiner.on(":").join(offlineDlpPrefix, dlpEventStats, cloudServiceStatsCacheKey,
-        tenantId3, cspId, instanceId3);
-
-    String cloudStatsKey5 = Joiner.on(":").join(offlineDlpPrefix, dlpEventStats, cloudServiceStatsCacheKey,
-        tenantId5, cspId, instanceId3);
-
-    String cloudStatsKey6 = Joiner.on(":").join(offlineDlpPrefix, dlpEventStats, cloudServiceStatsCacheKey,
-        tenantId6, cspId, instanceId3);
-
-    String cloudStatsKey7 = Joiner.on(":").join(offlineDlpPrefix, dlpEventStats, cloudServiceStatsCacheKey,
-        tenantId7, cspId, instanceId3);
-
-    String cloudStatsKeyPattern = Joiner.on("").join(cloudStatsKey1, "*");
-    System.out.println(Instant.now());
-
     try {
       UsageMetrices stats1 = UsageMetrices.builder()
-          .setTimestamp(getTimeNow())
+          .setTimestamp("2022-05-01T02:00:00.000Z")
           .setTenantId(tenantId)
           .setInstanceId(instanceId)
           .setCspId(cspId)
-          .setApi(1)
+          .setApi(2)
           .setCount(5)
           .build();
 
       UsageMetrices stats2 = UsageMetrices.builder()
-          .setTimestamp(getTimeNow())
-          .setTenantId(tenantId2)
-          .setInstanceId(instanceId3)
+          .setTimestamp("2022-05-01T03:00:00.000Z")
+//          .setTimestamp(getTimeNow())
+          .setTenantId(tenantId)
+          .setInstanceId(instanceId)
           .setCspId(cspId)
           .setApi(2)
-          .setCount(59)
+          .setCount(3)
           .build();
 
       UsageMetrices stats3 = UsageMetrices.builder()
           .setTimestamp(getTimeNow())
-          .setTenantId(1234)
-          .setInstanceId(3678)
-          .setCspId(28610)
+          .setTenantId(tenantId)
+          .setInstanceId(instanceId)
+          .setCspId(cspId)
           .setApi(3)
-          .setCount(9)
+          .setCount(51)
           .build();
 
       System.out.println("stats1: " + objectMapper.writeValueAsString(stats1));
-      System.out.println("stats2: " + objectMapper.writeValueAsString(stats2));
       System.out.println("\n");
 
-      //Connecting to Redis server on localhost
-      //redisConnect();
       redisLocalCacheConnect();
 
-      writeToSet(cloudStatsKey3, stats1);
-      writeToSet(cloudStatsKey4, stats2);
-      writeToSet(cloudStatsKey3, stats3);
-      writeToSet(cloudStatsKey5, stats3);
-      writeToSet(cloudStatsKey6, stats3);
-      writeToSet(cloudStatsKey7, stats3);
+//      ingestStatsToRedis(stats1);
+//      ingestStatsToRedis(stats2);
+//      ingestStatsToRedis(stats2);
 
-      List<String> statsKeysToRead = getUsageStatsCacheKeys(cloudStatsKeyPattern);
-      System.out.println("Reading total of " + statsKeysToRead.size() + " Redis keys - " + statsKeysToRead);
-
-
-      statsKeysToRead.forEach(key -> {
-        System.out.println("key: " + key);
-        String[] splits = key.split(":");
-
-        int length = splits.length;
-        System.out.printf("Len: " + length);
-        String tenantInstanceKey = Joiner.on(":").join(splits[length-3], splits[length-2], splits[length-1]);
-        System.out.println(tenantInstanceKey);
-
-        //TenantInstanceKey tenantInstanceKey = TenantInstanceKey.create(tenantId, cspId, instanceId);
-      });
+      ingestStatsToRedisHset(stats1);
+      ingestStatsToRedisHset(stats2);
 
       System.exit(0);
 
+//      increamentBy(cloudStatsKey2, stats2);
+//      increamentBy(keyType21, stats3);
 
-      List<UsageMetrices> stats = new ArrayList<>();
-      fetchStats(statsKeysToRead, stats);
-
-      System.out.println("\n");
-      System.out.println("--- final stats size: " + stats.size());
-      for (UsageMetrices usageStats : stats) {
-        System.out.println(usageStats);
-      }
-      System.out.println("--- final stats ---");
-      /**
-       UsageMetrices{timestamp=2022-05-05 19:40:23:343, tenantId=1234, tenantInstanceId=5678, csp=28610, api=1, count=5}
-       UsageMetrices{timestamp=2022-05-05 19:40:23:343, tenantId=1234, tenantInstanceId=3678, csp=28610, api=3, count=9}
-       UsageMetrices{timestamp=2022-05-05 19:40:23:345, tenantId=2234, tenantInstanceId=2678, csp=28610, api=2, count=59}
-       */
-
-      //List<UsageMetrices> stats = fetch(cloudStatsKey3);
-      //System.out.println(stats);
-
-//      // ****** HSet examples **********
-//
-//      //writeToHSet(stats1);
-//      writeToHSet(cloudStatsKey1, stats1);
-//      writeToHSet(cloudStatsKey2, stats2);
-//      writeToHSet(cloudStatsKey1, stats3);
+//      List<String> statsKeysToRead = getUsageStatsCacheKeys(cloudStatsKeyPattern);
+//      System.out.println("Reading total of " + statsKeysToRead.size() + " Redis keys - " + statsKeysToRead);
 //
 //
-
-//      List<UsageMetrices> statsFetched = fetchStats(statsKeysToRead);
+//      statsKeysToRead.forEach(key -> {
+//        System.out.println("key: " + key);
+//        String[] splits = key.split(":");
 //
-//      System.out.println("\n");
-//      System.out.println("--- final stats size: " + statsFetched.size());
-//      for (UsageMetrices usageStats : statsFetched) {
-//        System.out.println(usageStats);
-//      }
-//      System.out.println("--- final stats ---");
+//        int length = splits.length;
+//        System.out.printf("Len: " + length);
+//        String tenantInstanceKey = Joiner.on(":").join(splits[length-3], splits[length-2], splits[length-1]);
+//        System.out.println(tenantInstanceKey);
+//
+//        //TenantInstanceKey tenantInstanceKey = TenantInstanceKey.create(tenantId, cspId, instanceId);
+//      });
 
-      //deleteKey(RedisKey);
-      //hDeleteAllByKeys();
+      System.exit(0);
 
     } catch (JsonProcessingException e) {
       e.printStackTrace();
     }
   }
 
+  private static void readHset(String key) {
+    Map<String, String> hsetEntries = JedisClient.hgetAll(key);
+    System.out.println("hsetEntries: " + hsetEntries);
+  }
 
   /**
    * ============== logically methods ==============
    */
+  private static void ingestStatsToRedisHset(UsageMetrices usageMetrices) {
+    String redisKeyHset = KeyMaker.makeUsageStatsCacheKeyHset(usageMetrices);
+    System.out.println("redisKey: " + redisKeyHset);
+
+    String timeNow = usageMetrices.getTimestamp();
+    String[] dateTimeSplits = timeNow.split("T");
+    String[] timeFieldSplits = dateTimeSplits[1].split(":");
+
+    JedisClient.hincrBy(redisKeyHset, timeFieldSplits[0], usageMetrices.getCount());
+
+    readHset(redisKeyHset);
+  }
+
+  private static void ingestStatsToRedis(UsageMetrices usageMetrices) {
+    String redisKey = KeyMaker.makeUsageStatsCacheKey(usageMetrices);
+    System.out.println("redisKey: " + redisKey);
+
+    JedisClient.incrBy(redisKey, usageMetrices.getCount());
+  }
+
+  static class KeyMaker {
+
+    static String CLOUD_SERVICE_STATS_KEY = "offlinedlp:dlp:cloud_service_stats";
+
+    static String makeUsageStatsCacheKey(UsageMetrices usageMetrices) {
+      String timeNow = usageMetrices.getTimestamp();
+      String[] dateTimeSplits = timeNow.split("T");
+      String[] dateFieldSplits = dateTimeSplits[0].split("-");
+      String[] timeFieldSplits = dateTimeSplits[1].split(":");
+
+      return Joiner.on(":").join(CLOUD_SERVICE_STATS_KEY,
+          usageMetrices.getTenantId(),
+          usageMetrices.getCspId(),
+          usageMetrices.getInstanceId(),
+          usageMetrices.getApi(),
+          dateFieldSplits[0],
+          dateFieldSplits[1],
+          dateFieldSplits[2],
+          timeFieldSplits[0]
+      );
+    }
+
+    static String makeUsageStatsCacheKeyHset(UsageMetrices usageMetrices) {
+      String timeNow = usageMetrices.getTimestamp();
+      String[] dateTimeSplits = timeNow.split("T");
+      String[] dateFieldSplits = dateTimeSplits[0].split("-");
+      String[] timeFieldSplits = dateTimeSplits[1].split(":");
+
+      return Joiner.on(":").join(CLOUD_SERVICE_STATS_KEY,
+          usageMetrices.getTenantId(),
+          usageMetrices.getCspId(),
+          usageMetrices.getInstanceId(),
+          usageMetrices.getApi(),
+          dateTimeSplits[0]
+      );
+    }
+  }
+
+
+  private static String makeRedisKey(UsageMetrices usageMetrices) {
+    String timeNow = usageMetrices.getTimestamp();
+    String[] dateTimeSplits = timeNow.split("T");
+    String[] dateFieldSplits = dateTimeSplits[0].split("-");
+    String[] timeFieldSplits = dateTimeSplits[1].split(":");
+
+    return Joiner.on(":").join(offlineDlpPrefix, dlpEventStats, cloudServiceStatsCacheKey,
+        usageMetrices.getTenantId(),
+        usageMetrices.getCspId(),
+        usageMetrices.getInstanceId(),
+        usageMetrices.getApi(),
+        dateFieldSplits[0],
+        dateFieldSplits[1],
+        dateFieldSplits[2],
+        timeFieldSplits[0]);
+  }
+
+  private static String makeRedisKeyType2(UsageMetrices usageMetrices) {
+    String timeNow = usageMetrices.getTimestamp();
+    String[] dateTimeSplits = timeNow.split("T");
+    String[] dateFieldSplits = dateTimeSplits[0].split("-");
+    String[] timeFieldSplits = dateTimeSplits[1].split(":");
+
+    return Joiner.on(":").join(offlineDlpPrefix, dlpEventStats, cloudServiceStatsCacheKey,
+        usageMetrices.getTenantId(),
+        usageMetrices.getCspId(),
+        usageMetrices.getInstanceId(),
+        usageMetrices.getApi(),
+        dateTimeSplits[0],
+        timeFieldSplits[0],
+        timeFieldSplits[1]);
+  }
+
+
   private static List<String> getUsageStatsCacheKeys(String redisKeyPattern) throws JsonProcessingException {
     List<String> availableKeys = new ArrayList<>();
     Set<String> statsCacheKeys = JedisClient.keys(redisKeyPattern);
@@ -204,8 +232,8 @@ public class LocalRedisIngestionTests {
 
       System.out.println("len: " + statsKeySplitLength);
       String instanceId = redisStatsKeySplits[statsKeySplitLength];
-      String cspId = redisStatsKeySplits[statsKeySplitLength-1];
-      String tenantId = redisStatsKeySplits[statsKeySplitLength-2];
+      String cspId = redisStatsKeySplits[statsKeySplitLength - 1];
+      String tenantId = redisStatsKeySplits[statsKeySplitLength - 2];
       System.out.println("Instance: " + redisStatsKeySplits[statsKeySplitLength]);
 
       availableKeys.add(statsKey);
@@ -318,7 +346,8 @@ public class LocalRedisIngestionTests {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     String statsAsString = objectMapper.writeValueAsString(data);
-    JedisClient.hset(key, String.valueOf(data.getTimestamp()), statsAsString);  // ingest into redis in json string format
+    JedisClient.hset(key, String.valueOf(data.getTimestamp()),
+        statsAsString);  // ingest into redis in json string format
 
     // fetch values and typecast back to the ojbect
     Map<String, String> allItemsFromKey = JedisClient.hgetAll(key);
@@ -334,9 +363,8 @@ public class LocalRedisIngestionTests {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     String statsAsString = objectMapper.writeValueAsString(data);
-    JedisClient.sadd(key, statsAsString);
-//    UnifiedJedis client = new JedisPooled(Protocol.DEFAULT_HOST, 6379);
-//    client.jsonSet(key, statsAsString);
+//    JedisClient.set(key, String.valueOf(data.getCount()));
+    JedisClient.sadd(key, String.valueOf(data.getCount()));
   }
 
   private static void getSet(String key) throws JsonProcessingException {
@@ -392,7 +420,7 @@ public class LocalRedisIngestionTests {
         .build());
 
     // Simple PING command
-    System.out.println( "\nCache Command  : Ping" );
-    System.out.println( "Cache Response : " + JedisClient.ping());
+    System.out.println("\nCache Command  : Ping");
+    System.out.println("Cache Response : " + JedisClient.ping());
   }
 }
